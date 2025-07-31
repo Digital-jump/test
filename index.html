@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-First UX Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .canvas-workspace {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .toolbar {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 15px;
+        }
+
+        .tool-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .tool-btn.active {
+            background: #007bff;
+        }
+
+        .ai-chat-interface {
+            padding: 25px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chip {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: #e9ecef;
+            border-color: #007bff;
+        }
+
+        .design-canvas {
+            padding: 40px;
+            min-height: 500px;
+            background: #fafafa;
+            position: relative;
+        }
+
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .design-component {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .design-component:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .component-title {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .component-type {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .component-preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+        }
+
+        .component-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #218838;
+        }
+
+        .action-btn.secondary {
+            background: #6c757d;
+        }
+
+        .action-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .ai-assistant {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 350px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .ai-assistant.active {
+            transform: translateY(0);
+        }
+
+        .assistant-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .assistant-body {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.ai {
+            background: #f8f9fa;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        .export-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .export-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-option:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+
+        .export-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .chat-input-container {
+                flex-direction: column;
+            }
+            
+            .ai-assistant {
+                width: 90vw;
+                right: 5vw;
+            }
+            
+            .canvas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>AI-First UX Canvas</h1>
+            <p>Design beautiful interfaces through conversation with AI</p>
+        </header>
+
+        <div class="canvas-workspace">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="tool-btn active">Design</button>
+                    <button class="tool-btn">Components</button>
+                    <button class="tool-btn">Prototype</button>
+                    <button class="tool-btn">Export</button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="tool-btn">Share</button>
+                </div>
+            </div>
+
+            <div class="ai-chat-interface">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="Describe what you want to design... e.g., 'Create a modern login page with social auth'">
+                    <button class="send-btn" onclick="generateDesign()">Generate</button>
+                </div>
+                <div class="suggestion-chips">
+                    <span class="chip" onclick="setPrompt('Create a modern dashboard for analytics')">Analytics Dashboard</span>
+                    <span class="chip" onclick="setPrompt('Design a mobile-first e-commerce app')">E-commerce App</span>
+                    <span class="chip" onclick="setPrompt('Build a social media feed interface')">Social Feed</span>
+                    <span class="chip" onclick="setPrompt('Create a task management interface')">Task Manager</span>
+                </div>
+            </div>
+
+            <div class="design-canvas">
+                <div class="canvas-grid" id="designGrid">
+                    <div class="design-component fade-in">
+                        <div class="component-header">
+                            <span class="component-title">Header Component</span>
+                            <span class="component-type">Navigation</span>
+                        </div>
+                        <div class="component-preview">
+                            <div style="text-align: center;">
+                                <div style="font-weight: bold; margin-bottom: 10px;">App Logo</div>
+                                <div style="display: flex; gap: 15px; justify-content: center; font-size: 14px;">
+                                    <span>Home</span>
+                                    <span>About</span>
+                                    <span>Services</span>
+                                    <span>Contact</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="component-actions">
+                            <button class="action-btn">Edit</button>
+                            <button class="action-btn secondary">Duplicate</button>
+                        </div>
+                    </div>
+
+                    <div class="design-component fade-in">
+                        <div class="component-header">
+                            <span class="component-title">Hero Section</span>
+                            <span class="component-type">Content</span>
+                        </div>
+                        <div class="component-preview">
+                            <div style="text-align: center;">
+                                <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">Welcome to Our App</div>
+                                <div style="font-size: 14px; color: #666; margin-bottom: 12px;">Transform your workflow with AI</div>
+                                <div style="background: #007bff; color: white; padding: 8px 16px; border-radius: 6px; display: inline-block;">Get Started</div>
+                            </div>
+                        </div>
+                        <div class="component-actions">
+                            <button class="action-btn">Edit</button>
+                            <button class="action-btn secondary">Duplicate</button>
+                        </div>
+                    </div>
+
+                    <div class="design-component fade-in">
+                        <div class="component-header">
+                            <span class="component-title">Feature Cards</span>
+                            <span class="component-type">Layout</span>
+                        </div>
+                        <div class="component-preview">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; text-align: center;">
+                                    <div style="font-weight: bold;">AI Design</div>
+                                    <div style="color: #666;">Smart automation</div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; text-align: center;">
+                                    <div style="font-weight: bold;">Export</div>
+                                    <div style="color: #666;">Multiple formats</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="component-actions">
+                            <button class="action-btn">Edit</button>
+                            <button class="action-btn secondary">Duplicate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="export-panel">
+            <h3>Export Your Design</h3>
+            <div class="export-options">
+                <div class="export-option" onclick="exportDesign('react')">
+                    <div class="export-icon">⚛️</div>
+                    <h4>React Components</h4>
+                    <p>TypeScript ready</p>
+                </div>
+                <div class="export-option" onclick="exportDesign('figma')">
+                    <div class="export-icon">🎨</div>
+                    <h4>Figma</h4>
+                    <p>Design system</p>
+                </div>
+                <div class="export-option" onclick="exportDesign('html')">
+                    <div class="export-icon">🌐</div>
+                    <h4>HTML/CSS</h4>
+                    <p>Production ready</p>
+                </div>
+                <div class="export-option" onclick="exportDesign('share')">
+                    <div class="export-icon">🔗</div>
+                    <h4>Share Link</h4>
+                    <p>Collaborate instantly</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-assistant" id="aiAssistant">
+        <div class="assistant-header">
+            <h4>AI Design Assistant</h4>
+            <button onclick="toggleAssistant()" style="background: none; border: none; color: white; cursor: pointer;">✕</button>
+        </div>
+        <div class="assistant-body" id="assistantBody">
+            <div class="message ai">
+                Hi! I'm your AI design assistant. I can help you create beautiful interfaces, suggest improvements, and generate components. What would you like to design today?
+            </div>
+        </div>
+        <div style="padding: 15px; border-top: 1px solid #eee;">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="assistantInput" placeholder="Ask me anything..." style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                <button onclick="sendMessage()" style="background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="toggleAssistant()">🤖</button>
+
+    <script>
+        let assistantOpen = false;
+
+        function toggleAssistant() {
+            const assistant = document.getElementById('aiAssistant');
+            assistantOpen = !assistantOpen;
+            assistant.classList.toggle('active', assistantOpen);
+        }
+
+        function setPrompt(prompt) {
+            document.querySelector('.chat-input').value = prompt;
+        }
+
+        function generateDesign() {
+            const input = document.querySelector('.chat-input');
+            const prompt = input.value;
+            
+            if (!prompt.trim()) return;
+
+            // Show loading state
+            const sendBtn = document.querySelector('.send-btn');
+            const originalText = sendBtn.textContent;
+            sendBtn.innerHTML = '<div class="loading"></div>';
+            sendBtn.disabled = true;
+
+            // Simulate AI generation
+            setTimeout(() => {
+                addGeneratedComponent(prompt);
+                sendBtn.textContent = originalText;
+                sendBtn.disabled = false;
+                input.value = '';
+            }, 2000);
+        }
+
+        function addGeneratedComponent(prompt) {
+            const grid = document.getElementById('designGrid');
+            const component = document.createElement('div');
+            component.className = 'design-component fade-in';
+            
+            // Generate component based on prompt
+            let componentType = 'Generated';
+            let componentName = 'New Component';
+            let previewContent = '<div style="text-align: center; color: #666;">AI Generated Component</div>';
+
+            if (prompt.toLowerCase().includes('login')) {
+                componentName = 'Login Form';
+                componentType = 'Form';
+                previewContent = `
+                    <div style="padding: 10px;">
+                        <div style="margin-bottom: 8px; font-size: 12px;">Email</div>
+                        <div style="background: #f8f9fa; height: 20px; border-radius: 4px; margin-bottom: 8px;"></div>
+                        <div style="margin-bottom: 8px; font-size: 12px;">Password</div>
+                        <div style="background: #f8f9fa; height: 20px; border-radius: 4px; margin-bottom: 12px;"></div>
+                        <div style="background: #007bff; color: white; padding: 6px; border-radius: 4px; text-align: center; font-size: 12px;">Sign In</div>
+                    </div>
+                `;
+            } else if (prompt.toLowerCase().includes('dashboard')) {
+                componentName = 'Analytics Dashboard';
+                componentType = 'Layout';
+                previewContent = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10px;">
+                        <div style="background: #e3f2fd; padding: 6px; border-radius: 3px;">
+                            <div style="font-weight: bold;">Users</div>
+                            <div style="font-size: 14px; color: #007bff;">1,234</div>
+                        </div>
+                        <div style="background: #e8f5e8; padding: 6px; border-radius: 3px;">
+                            <div style="font-weight: bold;">Revenue</div>
+                            <div style="font-size: 14px; color: #28a745;">$12.3k</div>
+                        </div>
+                        <div style="grid-column: 1 / -1; background: #f8f9fa; padding: 6px; border-radius: 3px; text-align: center;">
+                            📊 Chart Area
+                        </div>
+                    </div>
+                `;
+            }
+
+            component.innerHTML = `
+                <div class="component-header">
+                    <span class="component-title">${componentName}</span>
+                    <span class="component-type">${componentType}</span>
+                </div>
+                <div class="component-preview">
+                    ${previewContent}
+                </div>
+                <div class="component-actions">
+                    <button class="action-btn">Edit</button>
+                    <button class="action-btn secondary">Duplicate</button>
+                </div>
+            `;
+
+            grid.appendChild(component);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('assistantInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            const body = document.getElementById('assistantBody');
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.textContent = message;
+            body.appendChild(userMsg);
+
+            // Clear input
+            input.value = '';
+
+            // Simulate AI response
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message ai';
+                
+                // Generate contextual responses
+                let response = "I understand you'd like help with that. Let me assist you!";
+                
+                if (message.toLowerCase().includes('color')) {
+                    response = "For colors, I recommend using a consistent palette. Try using primary colors like #007bff for actions and neutral grays for text. Would you like me to suggest a full color scheme?";
+                } else if (message.toLowerCase().includes('layout')) {
+                    response = "For layouts, consider using CSS Grid or Flexbox for responsive designs. I can help you create a specific layout - what type of content are you working with?";
+                } else if (message.toLowerCase().includes('component')) {
+                    response = "I can help you create custom components! What functionality do you need? For example, I can generate forms, cards, navigation bars, or interactive elements.";
+                }
+                
+                aiMsg.textContent = response;
+                body.appendChild(aiMsg);
+                body.scrollTop = body.scrollHeight;
+            }, 1000);
+        }
+
+        function exportDesign(type) {
+            alert(`Exporting design as ${type.toUpperCase()}... This would typically generate and download the files or open the appropriate integration.`);
+        }
+
+        // Allow Enter key to send messages
+        document.getElementById('assistantInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Allow Enter key to generate design
+        document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateDesign();
+            }
+        });
+
+        // Add some sample interactions
+        setTimeout(() => {
+            const body = document.getElementById('assistantBody');
+            const tip = document.createElement('div');
+            tip.className = 'message ai';
+            tip.innerHTML = '💡 <strong>Tip:</strong> Try asking me to "create a modern button component" or "suggest colors for a health app"';
+            body.appendChild(tip);
+        }, 3000);
+    </script>
+</body>
+</html>
